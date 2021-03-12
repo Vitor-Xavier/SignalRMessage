@@ -1,0 +1,132 @@
+﻿@page "/"
+@using Microsoft.AspNetCore.SignalR.Client
+@using Newtonsoft.Json;
+@using System.Text;
+@using Crosscutting;
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+@implements IAsyncDisposable
+
+<h1>Hello, world!</h1>
+
+<div class="form-row">
+    <div class="form-group col-3 mr-3">
+        <label for="messageInput">Username</label>
+        <input @bind="userInput" disabled="@(IsConnected)" type="text" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1">
+    </div>
+    <div class="form-group col-3 mr-3">
+        <label for="messageInput">Password</label>
+        <input @bind="userPassword" disabled="@(IsConnected)" type="password" class="form-control" placeholder="Password" aria-label="Password" aria-describedby="basic-addon1">
+    </div>
+    <div class="form-group">
+        <label style="line-height: 1.5">&nbsp;</label><br />
+        <button @onclick="Connect" type="button" class="btn btn-primary">@(IsConnected ? "Disconnect" : "Connect") </button>
+    </div>
+</div>
+<div class="form-row">
+    <div class="form-group col-3">
+        <label for="messageInput">To</label>
+        <input @bind="messageTo" disabled="@(!IsConnected)" type="text" class="form-control" placeholder="To" aria-label="To" aria-describedby="basic-addon1">
+    </div>
+</div>
+<div class="form-row">
+    <div class="form-group col-12">
+        <label for="messageInput">Content</label>
+        <textarea @bind="messageInput" disabled="@(!IsConnected)" class="form-control" id="messageInput" rows="2"></textarea>
+    </div>
+</div>
+<div class="form-row">
+    <button @onclick="Send" disabled="@(!IsConnected)" type="button" class="btn btn-primary mr-3">Send</button>
+    <button @onclick="SendPrivate" disabled="@(!IsConnected)" type="button" class="btn btn-primary">Send Private</button>
+</div>
+<hr>
+
+<ul id="messagesList" class="list-group list-group-flush">
+    @foreach (var message in messages)
+    {
+        // @(message.Item1 == userInput ? "text-right" : string.Empty)
+        <li class="list-group-item">
+            <div class="header d-flex">
+                <strong class="primary-font">@message.To</strong>
+                <small class="pull-right text-muted ml-auto">
+                    <span class="glyphicon glyphicon-time"></span>@($"{@message.ReceivedDateTime:hh:mm}")
+                </small>
+            </div>
+            <p>@message.Content</p>
+        </li>
+    }
+</ul>
+
+@code {
+    private HubConnection hubConnection;
+    private ICollection<Message> messages = new HashSet<Message>();
+    private string userInput;
+    private string messageInput;
+    private string messageTo;
+    private string userPassword;
+
+    private readonly string _url = "https://localhost:5001";
+
+    async Task Connect()
+    {
+        if (IsConnected)
+        {
+            await hubConnection?.StopAsync();
+            messageTo = string.Empty;
+            messageInput = string.Empty;
+        }
+
+        if (string.IsNullOrWhiteSpace(userInput) || string.IsNullOrWhiteSpace(userPassword))
+            return;
+
+        hubConnection = new HubConnectionBuilder().WithUrl($"{_url}/messagehub", options =>
+        {
+            options.AccessTokenProvider = async () =>
+            {
+                var user = new UserDto { Username = userInput, Password = userPassword };
+                string serialized = await Task.Run(() => JsonConvert.SerializeObject(user)).ConfigureAwait(false);
+                var content = new StringContent(serialized, Encoding.UTF8, "application/json");
+
+                var response = await Http.PostAsync($"{_url}/api/User/Authenticate", content);
+                response.EnsureSuccessStatusCode();
+
+                var logged = JsonConvert.DeserializeObject<UserDto>(await response.Content.ReadAsStringAsync());
+
+                return logged.Token;
+            };
+        }).Build();
+
+        hubConnection.On<string, string>("ReceiveMessage", (user, message) =>
+        {
+            messages.Add(new Message { Content = message, To = user, ReceivedDateTime = DateTime.Now });
+            StateHasChanged();
+        });
+
+        await hubConnection.StartAsync();
+    }
+
+    async Task Send()
+    {
+        if (string.IsNullOrWhiteSpace(messageInput))
+            return;
+
+        await hubConnection.SendAsync("SendMessage", messageInput);
+        messageInput = string.Empty;
+    }
+
+    async Task SendPrivate()
+    {
+        if (string.IsNullOrWhiteSpace(messageTo) || string.IsNullOrWhiteSpace(messageInput))
+            return;
+
+        await hubConnection.SendAsync("SendPrivateMessage", messageTo, messageInput);
+        messageInput = string.Empty;
+    }
+
+    public bool IsConnected => hubConnection?.State == HubConnectionState.Connected;
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null) await hubConnection.DisposeAsync();
+    }
+}
