@@ -1,16 +1,10 @@
 ﻿@page "/counter"
+@using Container;
+@inject StateContainer StateContainer
 
 <h1>Counter</h1>
 
+<p>Token: @StateContainer.Token</p>
 <p>Current count: @currentCount</p>
 
 <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
-
-@code {
-    private int currentCount = 0;
-
-    private void IncrementCount()
-    {
-        currentCount++;
-    }
-}

@@ -3,6 +3,7 @@ using Blazorise.Bootstrap;
 using Blazorise.Icons.FontAwesome;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using SignalRMessage.WebApp.Container;
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -24,6 +25,7 @@ namespace SignalRMessage.WebApp
               .AddBootstrapProviders()
               .AddFontAwesomeIcons();
 
+            builder.Services.AddSingleton<StateContainer>();
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
             await builder.Build().RunAsync();
