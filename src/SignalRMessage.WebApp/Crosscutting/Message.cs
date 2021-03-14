@@ -6,6 +6,8 @@ namespace SignalRMessage.WebApp.Crosscutting
     {
         public string Content { get; set; }
 
+        public string From { get; set; }
+
         public string To { get; set; }
 
         public DateTime ReceivedDateTime { get; set; }

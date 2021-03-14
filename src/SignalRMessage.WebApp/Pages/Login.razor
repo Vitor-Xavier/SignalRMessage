@@ -1,0 +1,31 @@
+﻿@page "/login"
+@using Container;
+@inject HttpClient Http
+@inject StateContainer StateContainer
+@inject NavigationManager NavigationManager
+
+<div id="login">
+    <h3 class="text-center text-white pt-5">Login form</h3>
+    <div class="container">
+        <div id="login-row" class="row justify-content-center align-items-center">
+            <div id="login-column" class="col-md-6">
+                <div id="login-box" class="col-md-12">
+                    <form id="login-form" class="form" action="" method="post">
+                        <h3 class="text-center">Login</h3>
+                        <div class="form-group">
+                            <label for="messageInput">Username</label>
+                            <input @bind="username" disabled="@loggingIn" type="text" name="username" id="username" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="messageInput">Password</label>
+                            <input @bind="password" disabled="@loggingIn" type="password" name="password" id="password" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <button @onclick="Connect" disabled="@loggingIn" type="button" class="btn btn-primary">Submit</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

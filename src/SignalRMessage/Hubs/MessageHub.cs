@@ -17,7 +17,7 @@ namespace SignalRMessage.Hubs
         public async Task SendPrivateMessage(string user, string message)
         {
             var username = Context.User?.FindFirst(ClaimTypes.Name)?.Value;
-            await Clients.Users(new string[] { user, username })?.SendAsync("ReceiveMessage", username, message);
+            await Clients.Users(new string[] { user, username })?.SendAsync("ReceiveMessage", username, user, message);
         }
     }
 }

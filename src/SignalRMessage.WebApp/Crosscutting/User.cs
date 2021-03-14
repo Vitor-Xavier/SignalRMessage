@@ -1,6 +1,6 @@
 ﻿namespace SignalRMessage.WebApp.Crosscutting
 {
-    public class UserDto
+    public class User
     {
         public string Username { get; set; }
 

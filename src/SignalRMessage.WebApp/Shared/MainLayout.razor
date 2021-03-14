@@ -1,17 +1,33 @@
 ﻿@inherits LayoutComponentBase
+@using Container;
+@inject StateContainer StateContainer
+@inject NavigationManager NavigationManager
 
 <div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
-
+    @if (!string.IsNullOrWhiteSpace(StateContainer.Token))
+    {
+        <div class="sidebar">
+            <NavMenu />
+        </div>
+    }
     <div class="main">
         <div class="top-row px-4">
             <a href="http://blazor.net" target="_blank" class="ml-md-auto">About</a>
         </div>
-
         <div class="content px-4">
             @Body
         </div>
     </div>
 </div>
+
+@code {
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        if (string.IsNullOrWhiteSpace(StateContainer.Token))
+        {
+            NavigationManager.NavigateTo("/login");
+        }
+    }
+}

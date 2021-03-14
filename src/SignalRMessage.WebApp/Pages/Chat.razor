@@ -1,0 +1,38 @@
+﻿@page "/chat/{type}/{name}"
+@using Container;
+@inject StateContainer StateContainer
+
+<div class="container">
+    <div class="row">
+        <div class="card d-block w-100 h-100">
+            <div class="card-header">
+                <h3>@Name</h3>
+            </div>
+            <div class="card-body">
+                <ul @key="Name" id="messagesList" class="list-group list-group-flush">
+                    @foreach (var message in messages.Where(m => (m.From == Name && m.To == StateContainer.User.Username) || (m.From == StateContainer.User.Username && m.To == Name)))
+                    {
+                        // @(message.Item1 == userInput ? "text-right" : string.Empty)
+                        <li class="list-group-item">
+                            <div class="header d-flex">
+                                <strong class="primary-font">@message.From</strong>
+                                <small class="pull-right text-muted ml-auto">
+                                    <span class="glyphicon glyphicon-time"></span>@($"{@message.ReceivedDateTime:hh:mm}")
+                                </small>
+                            </div>
+                            <p>@message.Content</p>
+                        </li>
+                    }
+                </ul>
+            </div>
+            <div class="card-footer">
+                <div class="input-group">
+                    <textarea @bind="message" name="" class="form-control type_msg" placeholder="Mensagem..."></textarea>
+                    <div class="input-group-append">
+                        <span @onclick="SendPrivate" class="input-group-text send_btn"><i class="fas fa-location-arrow"></i></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,10 +1,13 @@
-﻿using System;
+﻿using SignalRMessage.WebApp.Crosscutting;
+using System;
 
 namespace SignalRMessage.WebApp.Container
 {
     public class StateContainer
     {
-        public string Token { get; set; } = "";
+        public string Token { get; private set; } = "";
+
+        public User User { get; set; }
 
         public event Action OnChange;
 
